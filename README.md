@@ -47,7 +47,8 @@ cp .env.example .env
 
 4. Run database migrations:
 ```bash
-cargo run --bin migrations
+chmod +x sea-orm.sh
+./sea-orm.sh
 ```
 
 5. Configure WhatsApp Business API credentials in .env
