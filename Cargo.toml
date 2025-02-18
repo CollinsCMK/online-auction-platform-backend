@@ -3,7 +3,12 @@ name = "online-action-product-backend"
 version = "0.1.0"
 edition = "2021"
 
+# [workspace]
+# members = [".", "entity", "migration"]
+
 [dependencies]
+entity = { path = "entity" }
+migration = { path = "migration"}
 actix-cors = "0.7.0"
 actix-session = { version = "0.10.1", features = ["cookie-session"] }
 actix-web = "4.9.0"
