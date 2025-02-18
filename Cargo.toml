@@ -1,5 +1,5 @@
 [package]
-name = "online-action-product-backend"
+name = "online-auction-system-backend"
 version = "0.1.0"
 edition = "2021"
 
