@@ -10,7 +10,7 @@ use serde_json::json;
 use crate::utils::{api_response::ApiResponse, app_state::AppState, json_response::response};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ListingData {
+struct ListingData {
     title: String,
     description: Option<String>,
     start_time: NaiveDateTime,
@@ -49,7 +49,7 @@ impl ListingData {
     }
 }
 
-#[post("/create")]
+#[post("/listing/create")]
 pub async fn create_listing(
     listing_data: web::Json<ListingData>,
     app_state: web::Data<AppState>,
@@ -88,7 +88,7 @@ pub async fn create_listing(
     )))
 }
 
-#[put("/update/{id}")]
+#[put("/listing/update/{id}")]
 pub async fn update_listing(
     listing_data: web::Json<ListingData>,
     app_state: web::Data<AppState>,
