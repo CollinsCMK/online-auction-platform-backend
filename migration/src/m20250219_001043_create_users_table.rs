@@ -19,7 +19,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Users::Name).string().not_null())
-                    .col(ColumnDef::new(Users::PhoneNumber).string().not_null())
+                    .col(ColumnDef::new(Users::PhoneNumber).string().not_null().unique_key())
                     .col(ColumnDef::new(Users::DeletedAt).timestamp())
                     .col(ColumnDef::new(Users::CreatedAt).timestamp().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
                     .col(ColumnDef::new(Users::UpdatedAt).timestamp().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())

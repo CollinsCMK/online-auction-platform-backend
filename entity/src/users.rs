@@ -8,6 +8,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub name: String,
+    #[sea_orm(unique)]
     pub phone_number: String,
     pub deleted_at: Option<DateTime>,
     pub created_at: DateTime,
