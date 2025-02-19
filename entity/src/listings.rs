@@ -10,8 +10,7 @@ pub struct Model {
     pub title: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
-    pub start_time: DateTime,
-    pub end_time: DateTime,
+    pub auction_id: i32,
     #[sea_orm(column_type = "Decimal(Some((10, 2)))")]
     pub base_price: Decimal,
     pub available_volume: i32,
@@ -24,6 +23,14 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(has_many = "super::auction_results::Entity")]
     AuctionResults,
+    #[sea_orm(
+        belongs_to = "super::auctions::Entity",
+        from = "Column::AuctionId",
+        to = "super::auctions::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    Auctions,
     #[sea_orm(has_many = "super::bids::Entity")]
     Bids,
 }
@@ -31,6 +38,12 @@ pub enum Relation {
 impl Related<super::auction_results::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::AuctionResults.def()
+    }
+}
+
+impl Related<super::auctions::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Auctions.def()
     }
 }
 

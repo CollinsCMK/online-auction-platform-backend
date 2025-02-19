@@ -3,6 +3,7 @@
 pub mod prelude;
 
 pub mod auction_results;
+pub mod auctions;
 pub mod bids;
 pub mod listings;
 pub mod users;

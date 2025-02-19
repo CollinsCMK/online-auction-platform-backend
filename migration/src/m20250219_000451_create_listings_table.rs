@@ -21,8 +21,14 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Listings::Title).string().not_null())
                     .col(ColumnDef::new(Listings::Description).text())
-                    .col(ColumnDef::new(Listings::StartTime).timestamp().not_null())
-                    .col(ColumnDef::new(Listings::EndTime).timestamp().not_null())
+                    .col(ColumnDef::new(Listings::AuctionId).integer().not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-listings-auction_id")
+                            .from(Listings::Table, Listings::AuctionId)
+                            .to(Auctions::Table, Auctions::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                    )
                     .col(ColumnDef::new(Listings::BasePrice).decimal_len(10, 2).not_null())
                     .col(ColumnDef::new(Listings::AvailableVolume).integer().not_null().default(1))
                     .col(ColumnDef::new(Listings::DeletedAt).timestamp())
@@ -46,6 +52,7 @@ enum Listings {
     Id,
     Title,
     Description,
+    AuctionId,
     StartTime,
     EndTime,
     BasePrice,
@@ -53,4 +60,10 @@ enum Listings {
     DeletedAt,
     CreatedAt,
     UpdatedAt,
+}
+
+#[derive(DeriveIden)]
+enum Auctions {
+    Table,
+    Id,
 }
