@@ -76,7 +76,7 @@ pub async fn create_auction(
 }
 
 #[put("/update/auction/{id}")]
-pub async fn update_aunction(
+pub async fn update_auction(
     app_state: web::Data<AppState>,
     path: web::Path<i32>,
     auction_data: web::Json<AuctionData>,
@@ -126,7 +126,7 @@ pub async fn update_aunction(
 }
 
 #[get("/aunctions/get")]
-pub async fn get_all_aunctions(
+pub async fn get_all_auctions(
     app_state: web::Data<AppState>,
 ) -> Result<ApiResponse, ApiResponse> {
     let auction_model = entity::auctions::Entity::find()
