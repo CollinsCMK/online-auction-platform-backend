@@ -21,6 +21,8 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Listings::Title).string().not_null())
                     .col(ColumnDef::new(Listings::Description).text())
+                    .col(ColumnDef::new(Listings::StartTime).timestamp().not_null())
+                    .col(ColumnDef::new(Listings::EndTime).timestamp().not_null())
                     .col(ColumnDef::new(Listings::BasePrice).decimal_len(10, 2).not_null())
                     .col(ColumnDef::new(Listings::AvailableVolume).integer().not_null().default(1))
                     .col(ColumnDef::new(Listings::DeletedAt).timestamp())
@@ -44,6 +46,8 @@ enum Listings {
     Id,
     Title,
     Description,
+    StartTime,
+    EndTime,
     BasePrice,
     AvailableVolume,
     DeletedAt,
