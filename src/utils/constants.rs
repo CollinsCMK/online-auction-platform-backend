@@ -9,6 +9,7 @@ lazy_static!(
     pub static ref SECRET: String = set_secret();
     pub static ref FRONTEND_URL: String = frontend_url();
     pub static ref SESSION_EXPIRATION_TIME: i64 = session_expiration_time();
+    pub static ref WHATSAPP_ACCESS_TOKEN: String = whatsapp_access_token();
 );
 
 fn set_address() -> String {
@@ -49,4 +50,10 @@ fn session_expiration_time() -> i64 {
     .expect("Environment variable 'SESSION_EXPIRATION_TIME' is required but not set.")
     .parse::<i64>()
     .expect("Failed to parse 'SESSION_EXPIRATION_TIME' as a valid i64 value.")
+}
+
+fn whatsapp_access_token() -> String {
+    dotenv::dotenv().ok();
+    env::var("WHATSAPP_ACCESS_TOKEN")
+        .expect("Environment variable 'WHATSAPP_ACCESS_TOKEN' is required but not set.")
 }
