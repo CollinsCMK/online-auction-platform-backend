@@ -18,6 +18,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
+                    .col(ColumnDef::new(Auctions::Name).string().not_null().unique_key())
                     .col(ColumnDef::new(Auctions::StartTime).timestamp().not_null())
                     .col(ColumnDef::new(Auctions::EndTime).timestamp().not_null())
                     .col(ColumnDef::new(Auctions::DeletedAt).timestamp())
@@ -39,6 +40,7 @@ impl MigrationTrait for Migration {
 enum Auctions {
     Table,
     Id,
+    Name,
     StartTime,
     EndTime,
     DeletedAt,
