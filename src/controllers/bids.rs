@@ -158,7 +158,7 @@ pub async fn get_all_bids(
 pub async fn get_active_bids(
     app_state: web::Data<AppState>,
 ) -> Result<ApiResponse, ApiResponse> {
-    let now = chrono::Utc::now().naive_utc();
+    let now = Utc::now().naive_utc();
 
     let active_listing_ids = entity::auctions::Entity::find()
         .inner_join(entity::listings::Entity)

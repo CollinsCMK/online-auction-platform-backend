@@ -42,7 +42,6 @@ impl MigrationTrait for Migration {
                             .to(Users::Table, Users::Id)
                             .on_delete(ForeignKeyAction::Cascade)
                     )
-                    .col(ColumnDef::new(AuctionResults::Amount).decimal_len(10, 2).not_null())
                     .col(ColumnDef::new(AuctionResults::DeletedAt).timestamp())
                     .col(ColumnDef::new(AuctionResults::CreatedAt).timestamp().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
                     .col(ColumnDef::new(AuctionResults::UpdatedAt).timestamp().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())

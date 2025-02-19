@@ -10,8 +10,6 @@ pub struct Model {
     pub listing_id: i32,
     pub winning_bid_id: i32,
     pub winning_user_id: i32,
-    #[sea_orm(column_type = "Decimal(Some((10, 2)))")]
-    pub amount: Decimal,
     pub deleted_at: Option<DateTime>,
     pub created_at: DateTime,
     pub updated_at: DateTime,
