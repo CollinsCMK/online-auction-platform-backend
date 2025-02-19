@@ -62,11 +62,25 @@ pub async fn create_listing(
         )));
     }
 
+    let auction_model = entity::auctions::ActiveModel {
+        start_time: Set(listing_data.start_time.clone()),
+        end_time: Set(listing_data.end_time.clone()),
+        ..Default::default()
+    }
+        .insert(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(
+                json!({
+                    "error": err.to_string()
+                })
+            ))
+        })?;
+
     entity::listings::ActiveModel {
         title: Set(listing_data.title.clone()),
         description: Set(listing_data.description.clone()),
-        start_time: Set(listing_data.start_time.clone()),
-        end_time: Set(listing_data.end_time.clone()),
+        auction_id: Set(auction_model.id),
         base_price: Set(Decimal::from_str(&listing_data.base_price.clone()).expect("A decimal number")),
         available_volume: Set(listing_data.available_volume.unwrap_or(1)),
         ..Default::default()
@@ -117,8 +131,6 @@ pub async fn update_listing(
     let mut update_listing_model: entity::listings::ActiveModel = listing_model.to_owned().into();
     update_listing_model.title = Set(listing_data.title.clone());
     update_listing_model.description = Set(listing_data.description.clone());
-    update_listing_model.start_time = Set(listing_data.start_time.clone());
-    update_listing_model.end_time = Set(listing_data.end_time.clone());
     update_listing_model.base_price = Set(Decimal::from_str(&listing_data.base_price.clone()).expect("A decimal number"));
     update_listing_model.available_volume = Set(listing_data.available_volume.unwrap_or(1));
     update_listing_model.updated_at = Set(Utc::now().naive_local());
@@ -161,8 +173,6 @@ pub async fn get_all_listings(
                 "id": row.id,
                 "title": row.title,
                 "description": row.description,
-                "start_time": row.start_time,
-                "end_time": row.end_time,
                 "base_price": row.base_price,
                 "available_volume": row.available_volume,
                 "updated_at": row.updated_at,
