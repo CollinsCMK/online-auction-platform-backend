@@ -235,9 +235,10 @@ pub async fn get_all_user_bids(
         .select_only()
         .column(entity::bids::Column::Id)
         .column_as(entity::listings::Column::Title, "listing_title")
+        .column(entity::listings::Column::Description)
         .column(entity::bids::Column::Amount)
         .column(entity::bids::Column::CreatedAt)
-        .into_tuple::<(i32, String, Decimal, NaiveDateTime)>()
+        .into_tuple::<(i32, String, String, Decimal, NaiveDateTime)>()
         .all(&app_state.db)
         .await
         .map_err(|err| {
@@ -248,10 +249,11 @@ pub async fn get_all_user_bids(
             ))
         })?
         .into_iter()
-        .map(|(id, listing_title, amount, created_at)| {
+        .map(|(id, listing_title, description, amount, created_at)| {
             json!({
                 "id": id,
                 "listing_title": listing_title,
+                "description": description,
                 "amount": amount,
                 "created_at": created_at,
             })
