@@ -1,7 +1,7 @@
 use actix_web::{get, post, web};
 use chrono::{NaiveDateTime, Utc};
 use rust_decimal::Decimal;
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, FromQueryResult, QueryFilter, QuerySelect, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, FromQueryResult, QueryFilter, QueryOrder, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -215,6 +215,53 @@ pub async fn get_active_bids(
         json!({
             "bids": bids,
             "message": "Bids for active auctions fetched successfully".to_string()
+        })
+    )))
+}
+
+#[get("/bids/user/{id}/{listing_id}")]
+pub async fn get_all_user_bids(
+    app_state: web::Data<AppState>,
+    path: web::Path<(i32, i32)>,
+) -> Result<ApiResponse, ApiResponse> {
+    let (user_id, listing_id) = path.into_inner();
+    
+    let bids = entity::bids::Entity::find()
+        .filter(entity::bids::Column::DeletedAt.is_null())
+        .filter(entity::bids::Column::UserId.eq(user_id))
+        .filter(entity::bids::Column::ListingId.eq(listing_id))
+        .inner_join(entity::listings::Entity)
+        .order_by_asc(entity::bids::Column::CreatedAt)
+        .select_only()
+        .column(entity::bids::Column::Id)
+        .column_as(entity::listings::Column::Title, "listing_title")
+        .column(entity::bids::Column::Amount)
+        .column(entity::bids::Column::CreatedAt)
+        .into_tuple::<(i32, String, Decimal, NaiveDateTime)>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(
+                json!({
+                    "error": err.to_string()
+                })
+            ))
+        })?
+        .into_iter()
+        .map(|(id, listing_title, amount, created_at)| {
+            json!({
+                "id": id,
+                "listing_title": listing_title,
+                "amount": amount,
+                "created_at": created_at,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    Ok(ApiResponse::new(200, response(
+        json!({
+            "bids": bids,
+            "message": "All your bids fetched successfully"
         })
     )))
 }

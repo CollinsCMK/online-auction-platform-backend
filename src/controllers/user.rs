@@ -119,6 +119,7 @@ pub async fn create_user(
         if user.name.clone() != user_data.name && user.phone_number.clone() != user_data.phone_number {
             return Ok(ApiResponse::new(200, response(
                 json!({
+                    "user_id": user.id,
                     "message": "User updated successfully. Continue to auction".to_string()
                 })
             )));
@@ -126,12 +127,13 @@ pub async fn create_user(
 
         return Ok(ApiResponse::new(200, response(
             json!({
+                "user_id": user.id,
                 "message": "User exists, continue to auction".to_string()
             })
         )));
     }
 
-    entity::users::ActiveModel {
+    let user_model_create = entity::users::ActiveModel {
         name: Set(user_data.name.clone()),
         phone_number: Set(user_data.phone_number.clone()),
         ..Default::default()
@@ -148,6 +150,7 @@ pub async fn create_user(
 
     Ok(ApiResponse::new(200, response(
         json!({
+            "user_id": user_model_create.id,
             "message": "User created successfully".to_string()
         })
     )))

@@ -25,6 +25,7 @@ pub fn config(config: &mut web::ServiceConfig) {
             .service(controllers::auction::create_auction)
             .service(controllers::auction::update_auction)
             .service(controllers::auction::get_all_auctions)
+            .service(controllers::auction::get_user_auctions)
             .service(controllers::auction::delete_auction)
             // End: API's for auctions
 
@@ -36,6 +37,7 @@ pub fn config(config: &mut web::ServiceConfig) {
             .service(controllers::bids::create_bid)
             .service(controllers::bids::get_all_bids)
             .service(controllers::bids::get_active_bids)
+            .service(controllers::bids::get_all_user_bids)
             // End: API's for bids
         );
 }

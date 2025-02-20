@@ -1,6 +1,10 @@
+use std::collections::HashMap;
+
 use actix_web::{delete, get, post, put, web};
 use chrono::{NaiveDateTime, Utc};
-use sea_orm::{ActiveModelTrait, EntityTrait, QueryFilter, Set, ColumnTrait};
+use migration::Expr;
+use rust_decimal::Decimal;
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -183,4 +187,93 @@ pub async fn delete_auction(
             "message": "Auction deleted successfully".to_string()
         })
     )))
+}
+
+#[get("/auctions/user/{id}")]
+pub async fn get_user_auctions(
+    app_state: web::Data<AppState>,
+    path: web::Path<i32>,
+) -> Result<ApiResponse, ApiResponse> {
+    let user_id = path.into_inner();
+    let now = Utc::now().naive_local();
+
+    // Fetch only auctions that are either Not Started or Active (exclude Ended ones)
+    let active_auctions = entity::auctions::Entity::find()
+        .inner_join(entity::listings::Entity)
+        .filter(entity::auctions::Column::EndTime.gte(now))
+        .select_only()
+        .column(entity::listings::Column::Id)
+        .column(entity::auctions::Column::StartTime)
+        .column(entity::auctions::Column::EndTime)
+        .column(entity::listings::Column::Title)
+        .column(entity::listings::Column::Description)
+        .column(entity::listings::Column::BasePrice)
+        .column(entity::listings::Column::AvailableVolume)
+        .into_tuple::<(i32, NaiveDateTime, NaiveDateTime, String, String, Decimal, i32)>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(json!({ "error": err.to_string() })))
+        })?;
+
+    let highest_user_bids = entity::bids::Entity::find()
+        .filter(entity::bids::Column::UserId.eq(user_id))
+        .group_by(entity::bids::Column::ListingId)
+        .select_only()
+        .column(entity::bids::Column::ListingId)
+        .column_as(Expr::col(entity::bids::Column::Amount).max(), "max_bid_user")
+        .into_tuple::<(i32, Decimal)>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(json!({ "error": err.to_string() })))
+        })?;
+
+    let highest_bids_anyone = entity::bids::Entity::find()
+        .group_by(entity::bids::Column::ListingId)
+        .select_only()
+        .column(entity::bids::Column::ListingId)
+        .column_as(Expr::col(entity::bids::Column::Amount).max(), "max_bid_anyone")
+        .into_tuple::<(i32, Decimal)>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(json!({ "error": err.to_string() })))
+        })?;
+
+    let total_bids = entity::bids::Entity::find()
+        .group_by(entity::bids::Column::ListingId)
+        .select_only()
+        .column(entity::bids::Column::ListingId)
+        .column_as(Expr::col(entity::bids::Column::Id).count(), "total_bids")
+        .into_tuple::<(i32, i64)>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(json!({ "error": err.to_string() })))
+        })?;
+
+    let highest_user_bids_map: HashMap<i32, Decimal> = highest_user_bids.into_iter().collect();
+    let highest_bids_anyone_map: HashMap<i32, Decimal> = highest_bids_anyone.into_iter().collect();
+    let total_bids_map: HashMap<i32, i64> = total_bids.into_iter().collect();
+
+    let auctions_data = active_auctions.into_iter().map(|(listing_id, start_time, end_time, title, description, base_price, available_volume)| {
+        json!({
+            "listing_id": listing_id,
+            "end_time": end_time,
+            "title": title,
+            "description": description,
+            "base_price": base_price,
+            "available_volume": available_volume,
+            "status": if start_time > now { "Not Started".to_string() } else { "Active".to_string() },
+            "highest_user_bid": highest_user_bids_map.get(&listing_id).unwrap_or(&Decimal::ZERO),
+            "highest_anyone_bid": highest_bids_anyone_map.get(&listing_id).unwrap_or(&Decimal::ZERO),
+            "total_bids": total_bids_map.get(&listing_id).unwrap_or(&0),
+        })
+    }).collect::<Vec<_>>();
+
+    Ok(ApiResponse::new(200, response(json!({
+        "auctions": auctions_data,
+        "message": "Auctions fetched successfully"
+    })) ))
 }
