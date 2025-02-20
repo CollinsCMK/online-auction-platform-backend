@@ -2,6 +2,7 @@ use std::{error::Error, fmt::Display};
 use actix_cors::Cors;
 use actix_session::{config::PersistentSession, SessionMiddleware, storage::CookieSessionStore};
 use actix_web::{cookie::{Key, SameSite}, middleware::Logger, web, App, HttpServer};
+use controllers::auction_result::create_auction_result;
 use sea_orm::{Database, DatabaseConnection};
 use utils::app_state::AppState;
 
@@ -35,6 +36,16 @@ impl Error for MainError {
     }
 }
 
+fn spawn_auction_task(db: DatabaseConnection) {
+    actix_rt::spawn(async move {
+        // We'll never reach the error handling here due to the infinite loop,
+        // but we need to handle potential errors within the loop
+        if let Err(e) = create_auction_result(db).await {
+            eprintln!("Auction task failed: {}", e);
+        }
+    });
+}
+
 #[actix_web::main] // or #[tokio::main]
 async fn main() -> Result<(), MainError>{
     if std::env::var_os("RUST_LOG").is_none() {
@@ -53,6 +64,8 @@ async fn main() -> Result<(), MainError>{
     let db: DatabaseConnection = Database::connect(database_url)
         .await
         .map_err(|err| MainError { message: err.to_string() })?;
+
+    spawn_auction_task(db.clone());
 
     HttpServer::new( move || {
         App::new()
