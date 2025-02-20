@@ -39,6 +39,8 @@ pub fn config(config: &mut web::ServiceConfig) {
             .service(controllers::bids::get_all_bids)
             .service(controllers::bids::get_active_bids)
             .service(controllers::bids::get_all_user_bids)
+            .service(controllers::bids::get_active_listings_bids)
+            .service(controllers::bids::get_all_listings_bids)
             // End: API's for bids
         );
 }

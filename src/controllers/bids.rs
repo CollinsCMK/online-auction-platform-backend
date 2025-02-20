@@ -219,6 +219,121 @@ pub async fn get_active_bids(
     )))
 }
 
+#[get("/bids/listings/get/{id}")]
+pub async fn get_all_listings_bids(
+    path: web::Path<i32>,
+    app_state: web::Data<AppState>,
+) -> Result<ApiResponse, ApiResponse> {
+    let listing_id = path.into_inner();
+    
+    let bids = entity::bids::Entity::find()
+        .filter(entity::bids::Column::DeletedAt.is_null())
+        .filter(entity::listings::Column::Id.eq(listing_id))
+        .inner_join(entity::listings::Entity)
+        .inner_join(entity::users::Entity)
+        .select_only()
+        .column(entity::users::Column::Name)
+        .column_as(entity::listings::Column::Title, "listing_title")
+        .column(entity::bids::Column::Amount)
+        .column(entity::bids::Column::CreatedAt)
+        .into_model::<BidGetResult>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(
+                json!({
+                    "error": err.to_string()
+                })
+            ))
+        })?
+        .into_iter()
+        .map(|row| {
+            json!({
+                "name": row.name,
+                "listing_title": row.listing_title,
+                "amount": row.amount,
+                "created_at": row.created_at,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    Ok(ApiResponse::new(200, response(
+        json!({
+            "bids": bids,
+            "message": "Bids fetched successfully".to_string()
+        })
+    )))
+}
+
+#[get("/bids/listings/active/{id}")]
+pub async fn get_active_listings_bids(
+    path: web::Path<i32>,
+    app_state: web::Data<AppState>,
+) -> Result<ApiResponse, ApiResponse> {
+    let listing_id = path.into_inner();
+
+    let now = Utc::now().naive_utc();
+
+    let active_listing_ids = entity::auctions::Entity::find()
+        .inner_join(entity::listings::Entity)
+        .filter(
+            Condition::all()
+                .add(entity::auctions::Column::StartTime.lte(now))
+                .add(entity::auctions::Column::EndTime.gte(now))
+        )
+        .filter(entity::listings::Column::Id.eq(listing_id))
+        .select_only()
+        .column(entity::listings::Column::Id)
+        .into_tuple::<i32>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(
+                json!({
+                    "error": err.to_string()
+                })
+            ))
+        })?;
+
+    let bids = entity::bids::Entity::find()
+        .filter(entity::bids::Column::DeletedAt.is_null())
+        .filter(entity::bids::Column::ListingId.is_in(active_listing_ids))
+        .inner_join(entity::listings::Entity)
+        .inner_join(entity::users::Entity)
+        .select_only()
+        .column(entity::users::Column::Name)
+        .column_as(entity::listings::Column::Title, "listing_title")
+        .column(entity::bids::Column::Amount)
+        .column(entity::bids::Column::CreatedAt)
+        .into_model::<BidGetResult>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(
+                json!({
+                    "error": err.to_string()
+                })
+            ))
+        })?
+        .into_iter()
+        .map(|row| {
+            json!({
+                "name": row.name,
+                "listing_title": row.listing_title,
+                "amount": row.amount,
+                "created_at": row.created_at,
+            })
+        })
+        .collect::<Vec<_>>();
+    
+    Ok(ApiResponse::new(200, response(
+        json!({
+            "bids": bids,
+            "message": "Bids for active auctions fetched successfully".to_string()
+        })
+    )))
+}
+
 #[get("/bids/user/{id}/{listing_id}")]
 pub async fn get_all_user_bids(
     app_state: web::Data<AppState>,
