@@ -75,7 +75,7 @@ pub async fn create_auction(
     )))
 }
 
-#[put("/update/auction/{id}")]
+#[put("/auction/update/{id}")]
 pub async fn update_auction(
     app_state: web::Data<AppState>,
     path: web::Path<i32>,
@@ -125,7 +125,7 @@ pub async fn update_auction(
     )))
 }
 
-#[get("/aunctions/get")]
+#[get("/auctions/get")]
 pub async fn get_all_auctions(
     app_state: web::Data<AppState>,
 ) -> Result<ApiResponse, ApiResponse> {
