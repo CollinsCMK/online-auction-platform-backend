@@ -37,6 +37,7 @@ pub async fn get_user(
     Ok(ApiResponse::new(200, response(
         json!({
             "phone_number": users_model.phone_number,
+            "name": users_model.name,
             "message": "User data retrieved successfully".to_string()
         })
     )))
@@ -129,6 +130,21 @@ pub async fn create_user(
             })
         )));
     }
+
+    entity::users::ActiveModel {
+        name: Set(user_data.name.clone()),
+        phone_number: Set(user_data.phone_number.clone()),
+        ..Default::default()
+    }
+        .insert(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(
+                json!({
+                    "error": err.to_string()
+                })
+            ))
+        })?;
 
     Ok(ApiResponse::new(200, response(
         json!({
