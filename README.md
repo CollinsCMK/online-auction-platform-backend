@@ -27,33 +27,45 @@ A simplified online auction platform built with Actix Web and PostgreSQL, allowi
 
 ## Setup
 
-1. Clone the repository:
+1. Install Rust:
 ```bash
-git clone https://github.com/username/auction-platform.git
-cd auction-platform
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-2. Set up the database:
+2. Install sea-orm-cli:
+```bash
+cargo install sea-orm-cli@1.1.0
+```
+
+3. Make sure PostgreSQL is installed
+
+4. Clone the repository:
+```bash
+git clone https://github.com/CollinsCMK/online-auction-platform-backend.git
+cd online-auction-platform-backend
+```
+
+5. Set up the database:
 ```bash
 psql -U postgres
-CREATE DATABASE auction_db;
+CREATE DATABASE auction_system;
 ```
 
-3. Set environment variables:
+6. Set environment variables:
 ```bash
-cp .env.example .env
+mv env.example .env
 # Edit .env with your configuration
 ```
 
-4. Run database migrations:
+7. Run database migrations:
 ```bash
 chmod +x sea-orm.sh
 ./sea-orm.sh
 ```
 
-5. Configure WhatsApp Business API credentials in .env
+8. Configure WhatsApp Business API credentials in .env
 
-6. Start the application:
+9. Start the application:
 ```bash
 cargo run
 ```
