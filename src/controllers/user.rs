@@ -103,7 +103,7 @@ pub async fn create_user(
         update_user_model.name = Set(user_data.name.clone());
         update_user_model.phone_number = Set(user_data.phone_number.clone());
         if user.name.clone() != user_data.name && user.phone_number.clone() != user_data.phone_number {
-            update_user_model.updated_at = Set(Utc::now().naive_local());
+            update_user_model.updated_at = Set(Utc::now().naive_utc());
         } 
         update_user_model
             .update(&app_state.db)

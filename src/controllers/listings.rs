@@ -104,7 +104,7 @@ pub async fn update_listing(
     update_listing_model.description = Set(listing_data.description.clone());
     update_listing_model.base_price = Set(listing_data.base_price.clone());
     update_listing_model.available_volume = Set(listing_data.available_volume.unwrap_or(1));
-    update_listing_model.updated_at = Set(Utc::now().naive_local());
+    update_listing_model.updated_at = Set(Utc::now().naive_utc());
     update_listing_model
         .update(&app_state.db)
         .await

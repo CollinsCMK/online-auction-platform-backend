@@ -110,7 +110,7 @@ pub async fn update_auction(
     update_auction_model.name = Set(auction_data.name.clone());
     update_auction_model.start_time = Set(auction_data.start_time.clone());
     update_auction_model.end_time = Set(auction_data.end_time.clone());
-    update_auction_model.updated_at = Set(Utc::now().naive_local());
+    update_auction_model.updated_at = Set(Utc::now().naive_utc());
     update_auction_model
         .update(&app_state.db)
         .await
@@ -195,7 +195,7 @@ pub async fn get_user_auctions(
     path: web::Path<i32>,
 ) -> Result<ApiResponse, ApiResponse> {
     let user_id = path.into_inner();
-    let now = Utc::now().naive_local();
+    let now = Utc::now().naive_utc();
 
     // Fetch only auctions that are either Not Started or Active (exclude Ended ones)
     let active_auctions = entity::auctions::Entity::find()
