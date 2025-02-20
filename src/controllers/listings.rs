@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use actix_web::{delete, get, post, put, web};
 use chrono::{NaiveDateTime, Utc};
 use rust_decimal::Decimal;
@@ -13,7 +11,7 @@ use crate::utils::{api_response::ApiResponse, app_state::AppState, json_response
 struct ListingData {
     title: String,
     description: Option<String>,
-    base_price: String,
+    base_price: Decimal,
     available_volume: Option<i32>,
     auction_id: i32,
 }
@@ -24,8 +22,8 @@ impl ListingData {
             return Err("Title is required".to_string());
         }
 
-        if self.base_price.to_string().is_empty() {
-            return Err("Base Price is required".to_string());
+        if self.base_price <= Decimal::ZERO {
+            return Err("Base price must be greater than zero".to_string());
         }
 
         if self.auction_id.to_string().is_empty() {
@@ -53,7 +51,7 @@ pub async fn create_listing(
         title: Set(listing_data.title.clone()),
         description: Set(listing_data.description.clone()),
         auction_id: Set(listing_data.auction_id.clone()),
-        base_price: Set(Decimal::from_str(&listing_data.base_price.clone()).expect("A decimal number")),
+        base_price: Set(listing_data.base_price.clone()),
         available_volume: Set(listing_data.available_volume.unwrap_or(1)),
         ..Default::default()
     }
@@ -104,7 +102,7 @@ pub async fn update_listing(
     update_listing_model.title = Set(listing_data.title.clone());
     update_listing_model.auction_id = Set(listing_data.auction_id.clone());
     update_listing_model.description = Set(listing_data.description.clone());
-    update_listing_model.base_price = Set(Decimal::from_str(&listing_data.base_price.clone()).expect("A decimal number"));
+    update_listing_model.base_price = Set(listing_data.base_price.clone());
     update_listing_model.available_volume = Set(listing_data.available_volume.unwrap_or(1));
     update_listing_model.updated_at = Set(Utc::now().naive_local());
     update_listing_model
