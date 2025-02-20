@@ -12,6 +12,7 @@ lazy_static!(
     pub static ref WHATSAPP_ACCESS_TOKEN: String = whatsapp_access_token();
     pub static ref WHATSAPP_PHONE_NUMBER_ID: String = whatsapp_phone_number_id();
     pub static ref WHATSAPP_BUSINESS_ACCOUNT_ID: String = whatsapp_business_account_id();
+    pub static ref WHATSAPP_PHONE_NUMBER: String = whatsapp_phone_number();
 );
 
 fn set_address() -> String {
@@ -70,4 +71,10 @@ fn whatsapp_business_account_id() -> String {
     dotenv::dotenv().ok();
     env::var("WHATSAPP_BUSINESS_ACCOUNT_ID")
         .expect("Environment variable 'WHATSAPP_BUSINESS_ACCOUNT_ID' is required but not set.")
+}
+
+fn whatsapp_phone_number() -> String {
+    dotenv::dotenv().ok();
+    env::var("WHATSAPP_PHONE_NUMBER")
+        .expect("Environment variable 'WHATSAPP_PHONE_NUMBER' is required but not set.")
 }

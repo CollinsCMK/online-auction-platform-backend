@@ -6,7 +6,7 @@ use rust_decimal::Decimal;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, FromQueryResult, QueryFilter, QuerySelect, Set, ActiveModelTrait};
 use serde_json::json;
 
-use crate::utils::{api_response::ApiResponse, app_state::AppState, json_response::response, whatsapp::send_whatsapp_message};
+use crate::utils::{api_response::ApiResponse, app_state::AppState, constants, json_response::response, whatsapp::send_whatsapp_message};
 
 #[derive(Debug, FromQueryResult)]
 struct BidGetResult {
@@ -29,6 +29,7 @@ pub async fn create_auction_result(db: DatabaseConnection) -> Result<(), ApiResp
 }
 
 async fn process_auction_results(db: &DatabaseConnection) -> Result<(), ApiResponse> {
+    let whatsapp_number = constants::WHATSAPP_PHONE_NUMBER.to_string();
     let now = Utc::now().naive_utc();
 
     // Get ended auctions
@@ -115,14 +116,14 @@ async fn process_auction_results(db: &DatabaseConnection) -> Result<(), ApiRespo
                     listing.auction_id, title, bid.amount, user
                 );
 
-                send_whatsapp_message("254762797659", &message).await?;
+                send_whatsapp_message(&whatsapp_number, &message).await?;
             } else {
                 let message = format!(
                     "Auction Result:\nAuction ID: {}\nListing: {}\nNo bids were placed.",
                     listing.auction_id, title
                 );
 
-                send_whatsapp_message("254762797659", &message).await?;
+                send_whatsapp_message(&whatsapp_number, &message).await?;
             }
         }
     }
