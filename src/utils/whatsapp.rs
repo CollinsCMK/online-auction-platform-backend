@@ -1,16 +1,22 @@
 use serde_json::json;
 use reqwest::{header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE}, Response};
 
-use super::{api_response::ApiResponse, json_response::response};
+use super::{api_response::ApiResponse, constants, json_response::response};
 
 pub async fn send_whatsapp_message(
     phone_number: &str,
     message: &str,
-) -> Result<Response, ApiResponse> {    
-    let url = "https://graph.facebook.com/v22.0/62077h2474447573/messages";
+) -> Result<Response, ApiResponse> {  
+    let whatsapp_phone_number_id = constants::WHATSAPP_PHONE_NUMBER_ID.to_string();  
+    let url = &format!("https://graph.facebook.com/v22.0/{}/messages", whatsapp_phone_number_id);
     let mut headers = HeaderMap::new();
-    headers.insert(AUTHORIZATION, HeaderValue::from_static("Bearer EAAZAgCySNoHABOZCDM0pKAGSIb3LzLcdMJSHFzZAkH91MhYMzuBbujsfiPbI5R2gkmbSXob9XEYjRAheadGSblBhDgvVtKfajknZAJ7W0l3vaOTuFPZCPi6JlRIf5FLwVbRxBJ8CflHVingBiidfdatLZCZAo3fsiZAv2AaWseK7iJQpEmkOOAzA3qFM6e1cwdvVLxNzQwEZCVXeAjx5ZAGZAhrDZCZBaUXuzBx1ZBNXUZD"));
+    let token = constants::WHATSAPP_ACCESS_TOKEN.to_string();
+    
+    // Use HeaderValue::from_str instead of from_static
+    let auth_header = format!("Bearer {}", token);
+    headers.insert(AUTHORIZATION, HeaderValue::from_str(&auth_header).unwrap());
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
     let body = json!({
         "messaging_product": "whatsapp",
         "to": phone_number,

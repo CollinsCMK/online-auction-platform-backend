@@ -5,7 +5,7 @@ use sea_orm::{ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set, Activ
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::utils::{api_response::ApiResponse, app_state::AppState, json_response::response};
+use crate::utils::{api_response::ApiResponse, app_state::AppState, json_response::response, whatsapp::send_whatsapp_message};
 
 #[get("/user/get/{phone_number}")]
 pub async fn get_user(
@@ -117,6 +117,8 @@ pub async fn create_user(
             })?;
 
         if user.name.clone() != user_data.name && user.phone_number.clone() != user_data.phone_number {
+            send_whatsapp_message(&user.phone_number.trim_start_matches('+'), "User updated successfully. Continue to auction").await?;
+
             return Ok(ApiResponse::new(200, response(
                 json!({
                     "user_id": user.id,
@@ -124,6 +126,8 @@ pub async fn create_user(
                 })
             )));
         }
+
+        send_whatsapp_message(&user.phone_number.trim_start_matches('+'), "User exists, continue to auction").await?;
 
         return Ok(ApiResponse::new(200, response(
             json!({
@@ -147,6 +151,8 @@ pub async fn create_user(
                 })
             ))
         })?;
+
+    send_whatsapp_message(&user_model_create.phone_number.trim_start_matches('+'), "User created successfully").await?;
 
     Ok(ApiResponse::new(200, response(
         json!({
