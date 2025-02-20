@@ -137,6 +137,7 @@ struct AuctionResultDataResult {
     amount: Decimal,
     title: String,
     created_at: NaiveDateTime,
+    bid_id: i32,
 }
 
 #[get("/auction_results/get")]
@@ -151,6 +152,7 @@ pub async fn get_auction_results(
         .select_only()
         .column(entity::auction_results::Column::Id)
         .column(entity::users::Column::Name)
+        .column_as(entity::bids::Column::Id, "bid_id")
         .column(entity::bids::Column::Amount)
         .column(entity::listings::Column::Title)
         .column(entity::auction_results::Column::CreatedAt)
@@ -170,6 +172,7 @@ pub async fn get_auction_results(
                 "id": row.id,
                 "name": row.name,
                 "amount": row.amount,
+                "bid_id": row.bid_id,
                 "title": row.title,
                 "created_at": row.created_at,
             })
