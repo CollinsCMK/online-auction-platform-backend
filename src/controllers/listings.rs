@@ -137,7 +137,7 @@ struct  AuctionResult {
 }
 
 #[get("/listings/get/{id}")]
-pub async fn get_all_listings(
+pub async fn get_all_auction_listings(
     path: web::Path<i32>,
     app_state: web::Data<AppState>,
 ) -> Result<ApiResponse, ApiResponse> {
@@ -146,6 +146,57 @@ pub async fn get_all_listings(
     let listing_model = entity::listings::Entity::find()
         .inner_join(entity::auctions::Entity)
         .filter(entity::auctions::Column::Id.eq(auction_id))
+        .filter(entity::listings::Column::DeletedAt.is_null())
+        .select_only()
+        .column(entity::auctions::Column::Name)
+        .column(entity::auctions::Column::StartTime)
+        .column(entity::auctions::Column::EndTime)
+        .column(entity::listings::Column::Id)
+        .column(entity::listings::Column::Title)
+        .column(entity::listings::Column::Description)
+        .column(entity::listings::Column::BasePrice)
+        .column(entity::listings::Column::AvailableVolume)
+        .column(entity::listings::Column::UpdatedAt)
+        .into_model::<AuctionResult>()
+        .all(&app_state.db)
+        .await
+        .map_err(|err| {
+            ApiResponse::new(500, response(
+                json!({
+                    "error": err.to_string()
+                })
+            ))
+        })?
+        .into_iter()
+        .map(|row| {
+            json!({
+                "id": row.id,
+                "title": row.title,
+                "description": row.description,
+                "base_price": row.base_price,
+                "available_volume": row.available_volume,
+                "auction_name": row.name,
+                "start_time": row.start_time,
+                "end_time": row.end_time,
+                "updated_at": row.updated_at,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    Ok(ApiResponse::new(200, response(
+        json!({
+            "listings": listing_model,
+            "message": "Listings fetched successfully".to_string()
+        })
+    )))
+}
+
+#[get("/listings/all")]
+pub async fn get_all_listings(
+    app_state: web::Data<AppState>,
+) -> Result<ApiResponse, ApiResponse> {
+    let listing_model = entity::listings::Entity::find()
+        .inner_join(entity::auctions::Entity)
         .filter(entity::listings::Column::DeletedAt.is_null())
         .select_only()
         .column(entity::auctions::Column::Name)

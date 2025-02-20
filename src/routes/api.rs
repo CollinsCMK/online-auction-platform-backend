@@ -10,6 +10,7 @@ pub fn config(config: &mut web::ServiceConfig) {
             // Start: API's for listings
             .service(controllers::listings::create_listing)
             .service(controllers::listings::update_listing)
+            .service(controllers::listings::get_all_auction_listings)
             .service(controllers::listings::get_all_listings)
             .service(controllers::listings::delete_listing)
             // End: API's for listings
