@@ -84,37 +84,46 @@ async fn process_auction_results(db: &DatabaseConnection) -> Result<(), ApiRespo
     for listing in &all_listings {
         let title = listing.title.clone();
 
-        if let Some(bid) = highest_bids_map.get(&listing.id) {
-            let user = entity::users::Entity::find_by_id(bid.winning_user_id)
-                .one(db)
-                .await
-                .map_err(|err| ApiResponse::new(500, response(json!({ "error": err.to_string() }))))?
-                .map(|u| u.name)
-                .unwrap_or_else(|| "Unknown User".to_string());
-
-            let _auction_result = entity::auction_results::ActiveModel {
-                listing_id: Set(listing.id),
-                winning_bid_id: Set(bid.winning_bid_id),
-                winning_user_id: Set(bid.winning_user_id),
-                ..Default::default()
-            }
-            .insert(db)
+        // Check if auction result already exists
+        let existing_result = entity::auction_results::Entity::find()
+            .filter(entity::auction_results::Column::ListingId.eq(listing.id))
+            .one(db)
             .await
             .map_err(|err| ApiResponse::new(500, response(json!({ "error": err.to_string() }))))?;
 
-            let message = format!(
-                "Auction Result:\nAuction ID: {}\nListing: {}\nWinning Bid: {}\nWinner: {}",
-                listing.auction_id, title, bid.amount, user
-            );
+        if existing_result.is_none() {
+            if let Some(bid) = highest_bids_map.get(&listing.id) {
+                let user = entity::users::Entity::find_by_id(bid.winning_user_id)
+                    .one(db)
+                    .await
+                    .map_err(|err| ApiResponse::new(500, response(json!({ "error": err.to_string() }))))?
+                    .map(|u| u.name)
+                    .unwrap_or_else(|| "Unknown User".to_string());
 
-            send_whatsapp_message("254792315642", &message).await?;
-        } else {
-            let message = format!(
-                "Auction Result:\nAuction ID: {}\nListing: {}\nNo bids were placed.",
-                listing.auction_id, title
-            );
+                let _auction_result = entity::auction_results::ActiveModel {
+                    listing_id: Set(listing.id),
+                    winning_bid_id: Set(bid.winning_bid_id),
+                    winning_user_id: Set(bid.winning_user_id),
+                    ..Default::default()
+                }
+                .insert(db)
+                .await
+                .map_err(|err| ApiResponse::new(500, response(json!({ "error": err.to_string() }))))?;
 
-            send_whatsapp_message("254792315642", &message).await?;
+                let message = format!(
+                    "Auction Result:\nAuction ID: {}\nListing: {}\nWinning Bid: {}\nWinner: {}",
+                    listing.auction_id, title, bid.amount, user
+                );
+
+                send_whatsapp_message("254762797659", &message).await?;
+            } else {
+                let message = format!(
+                    "Auction Result:\nAuction ID: {}\nListing: {}\nNo bids were placed.",
+                    listing.auction_id, title
+                );
+
+                send_whatsapp_message("254762797659", &message).await?;
+            }
         }
     }
 
