@@ -91,6 +91,14 @@ pub async fn update_auction(
 ) -> Result<ApiResponse, ApiResponse> {
     let auction_id = path.into_inner();
 
+    if let Err(err) = auction_data.validate() {
+        return Err(ApiResponse::new(500, response(
+            json!({
+                "error": err.to_string()
+            })
+        )));
+    }
+
     let auction_model = entity::auctions::Entity::find_by_id(auction_id)
         .filter(entity::auctions::Column::DeletedAt.is_null())
         .one(&app_state.db)
