@@ -30,6 +30,10 @@ impl AuctionData {
         if self.end_time.to_string().is_empty() {
             return Err("End time is required".to_string());
         }
+
+        if self.start_time < Utc::now().naive_utc() {
+            return Err("Start time must be in the future".to_string());
+        }
         
         if self.start_time > self.end_time {
             return Err("Start time must be before end time".to_string());
